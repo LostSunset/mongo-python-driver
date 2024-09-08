@@ -4,6 +4,9 @@ Changelog
 Changes in Version 4.9.0
 -------------------------
 
+.. warning:: Driver support for MongoDB 3.6 reached end of life in April 2024.
+   PyMongo 4.9 will be the last release to support MongoDB 3.6.
+
 PyMongo 4.9 brings a number of improvements including:
 
 - Added support for MongoDB 8.0.
@@ -11,6 +14,8 @@ PyMongo 4.9 brings a number of improvements including:
 - Added support for In-Use Encryption range queries with MongoDB 8.0.
   Added :attr:`~pymongo.encryption.Algorithm.RANGE`.
   ``sparsity`` and ``trim_factor`` are now optional in :class:`~pymongo.encryption_options.RangeOpts`.
+- Added support for the "delegated" option for the KMIP ``master_key`` in
+  :meth:`~pymongo.encryption.ClientEncryption.create_data_key`.
 - pymongocrypt>=1.10 is now required for :ref:`In-Use Encryption` support.
 - Added :meth:`~pymongo.cursor.Cursor.to_list` to :class:`~pymongo.cursor.Cursor`,
   :class:`~pymongo.command_cursor.CommandCursor`,
@@ -37,6 +42,12 @@ PyMongo 4.9 brings a number of improvements including:
 - Fixed a bug where PyMongo would raise ``InvalidBSON: date value out of range``
   when using :attr:`~bson.codec_options.DatetimeConversion.DATETIME_CLAMP` or
   :attr:`~bson.codec_options.DatetimeConversion.DATETIME_AUTO` with a non-UTC timezone.
+- The default value for ``connect`` in ``MongoClient`` is changed to ``False`` when running on
+  unction-as-a-service (FaaS) like AWS Lambda, Google Cloud Functions, and Microsoft Azure Functions.
+  On some FaaS systems, there is a ``fork()`` operation at function
+  startup.  By delaying the connection to the first operation, we avoid a deadlock.  See
+  `Is PyMongo Fork-Safe`_ for more information.
+
 
 Issues Resolved
 ...............
@@ -44,6 +55,7 @@ Issues Resolved
 See the `PyMongo 4.9 release notes in JIRA`_ for the list of resolved issues
 in this release.
 
+.. _Is PyMongo Fork-Safe : https://www.mongodb.com/docs/languages/python/pymongo-driver/current/faq/#is-pymongo-fork-safe-
 .. _PyMongo 4.9 release notes in JIRA: https://jira.mongodb.org/secure/ReleaseNote.jspa?projectId=10004&version=39940
 
 
