@@ -580,7 +580,7 @@ class EntityMapUtil:
             return
         elif entity_type == "database":
             client = self[spec["client"]]
-            if not isinstance(client, MongoClient):
+            if type(client).__name__ != "MongoClient":
                 self.test.fail(
                     "Expected entity {} to be of type MongoClient, got {}".format(
                         spec["client"], type(client)
@@ -602,7 +602,7 @@ class EntityMapUtil:
             return
         elif entity_type == "session":
             client = self[spec["client"]]
-            if not isinstance(client, MongoClient):
+            if type(client).__name__ != "MongoClient":
                 self.test.fail(
                     "Expected entity {} to be of type MongoClient, got {}".format(
                         spec["client"], type(client)
@@ -667,7 +667,7 @@ class EntityMapUtil:
 
     def get_listener_for_client(self, client_name: str) -> EventListenerUtil:
         client = self[client_name]
-        if not isinstance(client, MongoClient):
+        if type(client).__name__ != "MongoClient":
             self.test.fail(
                 f"Expected entity {client_name} to be of type MongoClient, got {type(client)}"
             )
@@ -1170,9 +1170,6 @@ class UnifiedSpecTestMixinV1(IntegrationTest):
             self.skipTest("Implement PYTHON-1894")
         if "timeoutMS applied to entire download" in spec["description"]:
             self.skipTest("PyMongo's open_download_stream does not cap the stream's lifetime")
-        if "unpin after non-transient error on abort" in spec["description"]:
-            if client_context.version[0] == 8:
-                self.skipTest("Skipping TransientTransactionError pending PYTHON-4182")
 
         class_name = self.__class__.__name__.lower()
         description = spec["description"].lower()
