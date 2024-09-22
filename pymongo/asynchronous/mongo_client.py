@@ -177,6 +177,8 @@ class AsyncMongoClient(common.BaseObject, Generic[_DocumentType]):
           For more details, see the relevant section of the PyMongo 4.x migration guide:
           :ref:`pymongo4-migration-direct-connection`.
 
+        .. warning:: This API is currently in beta, meaning the classes, methods, and behaviors described within may change before the full release.
+
         The client object is thread-safe and has connection-pooling built in.
         If an operation fails because of a network error,
         :class:`~pymongo.errors.ConnectionFailure` is raised and the client
@@ -1193,7 +1195,6 @@ class AsyncMongoClient(common.BaseObject, Generic[_DocumentType]):
                     ),
                     ResourceWarning,
                     stacklevel=2,
-                    source=self,
                 )
         except AttributeError:
             pass
