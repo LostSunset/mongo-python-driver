@@ -95,7 +95,6 @@ from pymongo.errors import (
     WriteError,
 )
 from pymongo.operations import InsertOne, ReplaceOne, UpdateOne
-from pymongo.ssl_support import get_ssl_context
 from pymongo.synchronous import encryption
 from pymongo.synchronous.encryption import Algorithm, ClientEncryption, QueryType
 from pymongo.synchronous.mongo_client import MongoClient
@@ -2155,7 +2154,8 @@ class TestKmsTLSOptions(EncryptionIntegrationTest):
         # 127.0.0.1:9001: ('Certificate does not contain any `subjectAltName`s.',)
         key["endpoint"] = "127.0.0.1:9001"
         with self.assertRaisesRegex(
-            EncryptionError, "IP address mismatch|wronghost|IPAddressMismatch|Certificate"
+            EncryptionError,
+            "IP address mismatch|wronghost|IPAddressMismatch|Certificate|SSL handshake failed",
         ):
             self.client_encryption_invalid_hostname.create_data_key("aws", key)
 
@@ -2172,7 +2172,8 @@ class TestKmsTLSOptions(EncryptionIntegrationTest):
             self.client_encryption_expired.create_data_key("azure", key)
         # Invalid cert hostname error.
         with self.assertRaisesRegex(
-            EncryptionError, "IP address mismatch|wronghost|IPAddressMismatch|Certificate"
+            EncryptionError,
+            "IP address mismatch|wronghost|IPAddressMismatch|Certificate|SSL handshake failed",
         ):
             self.client_encryption_invalid_hostname.create_data_key("azure", key)
 
@@ -2189,7 +2190,8 @@ class TestKmsTLSOptions(EncryptionIntegrationTest):
             self.client_encryption_expired.create_data_key("gcp", key)
         # Invalid cert hostname error.
         with self.assertRaisesRegex(
-            EncryptionError, "IP address mismatch|wronghost|IPAddressMismatch|Certificate"
+            EncryptionError,
+            "IP address mismatch|wronghost|IPAddressMismatch|Certificate|SSL handshake failed",
         ):
             self.client_encryption_invalid_hostname.create_data_key("gcp", key)
 
@@ -2203,7 +2205,8 @@ class TestKmsTLSOptions(EncryptionIntegrationTest):
             self.client_encryption_expired.create_data_key("kmip")
         # Invalid cert hostname error.
         with self.assertRaisesRegex(
-            EncryptionError, "IP address mismatch|wronghost|IPAddressMismatch|Certificate"
+            EncryptionError,
+            "IP address mismatch|wronghost|IPAddressMismatch|Certificate|SSL handshake failed",
         ):
             self.client_encryption_invalid_hostname.create_data_key("kmip")
 
@@ -2861,15 +2864,8 @@ class TestKmsRetryProse(EncryptionIntegrationTest):
     def http_post(self, path, data=None):
         # Note, the connection to the mock server needs to be closed after
         # each request because the server is single threaded.
-        ctx: ssl.SSLContext = get_ssl_context(
-            CLIENT_PEM,  # certfile
-            None,  # passphrase
-            CA_PEM,  # ca_certs
-            None,  # crlfile
-            False,  # allow_invalid_certificates
-            False,  # allow_invalid_hostnames
-            False,  # disable_ocsp_endpoint_check
-        )
+        ctx = ssl.create_default_context(cafile=CA_PEM)
+        ctx.load_cert_chain(CLIENT_PEM)
         conn = http.client.HTTPSConnection("127.0.0.1:9003", context=ctx)
         try:
             if data is not None:
